@@ -333,10 +333,43 @@ func BenchmarkData_PackLittleEndian(b *testing.B) {
 	}
 }
 
+// func TestCreateCANFrame(t *testing.T) {
+
+// 	byteStringHex := "c01380130025802980"
+// 	//byteStringHex := "c013801300258029"
+
+// 	messageLength := 9
+
+// 	bytes, err := hex.DecodeString(byteStringHex)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
+// 	fmt.Println(bytes)
+// 	// b := []byte{0xC0, 0x13, 0x80, 0x13, 0x00, 0x25, 0x80, 0x29, 0x80}
+// 	// b := []byte{192, 19, 128, 19, 0, 37, 128, 41, 128}
+
+// 	canBits := CanBits(bytes)
+// 	canData := CreateCANFrame(bytes)
+// 	fmt.Println(canData[:])
+// 	fmt.Println(len(canData[:]))
+// 	fmt.Println(len(bytes))
+
+// 	if canBits != "000000111100100000000001110010000000000010100100000000011001010000000001" {
+// 		t.Errorf("canBits = %s", canBits)
+// 	}
+
+// 	if hex.EncodeToString(canData[:messageLength]) != "c01380130025802980" {
+// 		t.Errorf("hex.EncodeToString(canData[:])  = %s); want c01380130025802980", hex.EncodeToString(canData[:messageLength]))
+// 	}
+
+// }
+
 func TestCreateCANFrame(t *testing.T) {
 
-	// byteStringHex := "c01380130025802980"
-	byteStringHex := "c013801300258029"
+	byteStringHex := "8000000420061880000005200600"
+	//byteStringHex := "c013801300258029"
+
+	messageLength := 14
 
 	bytes, err := hex.DecodeString(byteStringHex)
 	if err != nil {
@@ -348,15 +381,16 @@ func TestCreateCANFrame(t *testing.T) {
 
 	canBits := CanBits(bytes)
 	canData := CreateCANFrame(bytes)
+	fmt.Println(canData[:])
 	fmt.Println(len(canData[:]))
 	fmt.Println(len(bytes))
 
-	if canBits != "" {
+	if canBits != "0000000100000000000000000010000000000100011000000001100000000001000000000000000010100000000001000110000000000000" {
 		t.Errorf("canBits = %s", canBits)
 	}
 
-	if hex.EncodeToString(canData[:]) != "c01380130025802980" {
-		t.Errorf("hex.EncodeToString(canData[:])  = %s); want c01380130025802980", hex.EncodeToString(canData[:]))
+	if hex.EncodeToString(canData[:messageLength]) != "8000000420061880000005200600" {
+		t.Errorf("hex.EncodeToString(canData[:])  = %s); want 8000000420061880000005200600", hex.EncodeToString(canData[:messageLength]))
 	}
 
 }

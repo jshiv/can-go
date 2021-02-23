@@ -204,8 +204,8 @@ func (d *Data) SetBit(i uint16, value bool) {
 	if i > 8*MaxDataLength-1 {
 		return
 	}
-	byteIndex := i / MaxDataLength
-	bitIndex := i % MaxDataLength
+	byteIndex := i / 8
+	bitIndex := i % 8
 	if value {
 		d[byteIndex] |= uint8(1 << bitIndex)
 	} else {
