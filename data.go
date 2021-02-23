@@ -2,11 +2,12 @@ package can
 
 import (
 	"fmt"
+	"strconv"
 
 	"go.einride.tech/can/internal/reinterpret"
 )
 
-const MaxDataLength = 8
+const MaxDataLength = 64
 
 // Data holds the data in a CAN frame.
 //
@@ -98,7 +99,7 @@ const MaxDataLength = 8
 type Data [MaxDataLength]byte
 
 // UnsignedBitsLittleEndian returns the little-endian bit range [start, start+length) as an unsigned value.
-func (d *Data) UnsignedBitsLittleEndian(start, length uint8) uint64 {
+func (d *Data) UnsignedBitsLittleEndian(start, length uint16) uint64 {
 	// pack bits into one continuous value
 	packed := d.PackLittleEndian()
 	// lsb index in the packed value is the start bit
@@ -112,7 +113,7 @@ func (d *Data) UnsignedBitsLittleEndian(start, length uint8) uint64 {
 }
 
 // UnsignedBitsBigEndian returns the big-endian bit range [start, start+length) as an unsigned value.
-func (d *Data) UnsignedBitsBigEndian(start, length uint8) uint64 {
+func (d *Data) UnsignedBitsBigEndian(start, length uint16) uint64 {
 	// pack bits into one continuous value
 	packed := d.PackBigEndian()
 	// calculate msb index in the packed value
@@ -128,19 +129,19 @@ func (d *Data) UnsignedBitsBigEndian(start, length uint8) uint64 {
 }
 
 // SignedBitsLittleEndian returns little-endian bit range [start, start+length) as a signed value.
-func (d *Data) SignedBitsLittleEndian(start, length uint8) int64 {
+func (d *Data) SignedBitsLittleEndian(start, length uint16) int64 {
 	unsigned := d.UnsignedBitsLittleEndian(start, length)
 	return reinterpret.AsSigned(unsigned, length)
 }
 
 // SignedBitsBigEndian returns little-endian bit range [start, start+length) as a signed value.
-func (d *Data) SignedBitsBigEndian(start, length uint8) int64 {
+func (d *Data) SignedBitsBigEndian(start, length uint16) int64 {
 	unsigned := d.UnsignedBitsBigEndian(start, length)
 	return reinterpret.AsSigned(unsigned, length)
 }
 
 // SetUnsignedBitsBigEndian sets the little-endian bit range [start, start+length) to the provided unsigned value.
-func (d *Data) SetUnsignedBitsLittleEndian(start, length uint8, value uint64) {
+func (d *Data) SetUnsignedBitsLittleEndian(start, length uint16, value uint64) {
 	// pack bits into one continuous value
 	packed := d.PackLittleEndian()
 	// lsb index in the packed value is the start bit
@@ -156,7 +157,7 @@ func (d *Data) SetUnsignedBitsLittleEndian(start, length uint8, value uint64) {
 }
 
 // SetUnsignedBitsBigEndian sets the big-endian bit range [start, start+length) to the provided unsigned value.
-func (d *Data) SetUnsignedBitsBigEndian(start, length uint8, value uint64) {
+func (d *Data) SetUnsignedBitsBigEndian(start, length uint16, value uint64) {
 	// pack bits into one continuous value
 	packed := d.PackBigEndian()
 	// calculate msb index in the packed value
@@ -174,24 +175,24 @@ func (d *Data) SetUnsignedBitsBigEndian(start, length uint8, value uint64) {
 }
 
 // SetSignedBitsLittleEndian sets the little-endian bit range [start, start+length) to the provided signed value.
-func (d *Data) SetSignedBitsLittleEndian(start, length uint8, value int64) {
+func (d *Data) SetSignedBitsLittleEndian(start, length uint16, value int64) {
 	d.SetUnsignedBitsLittleEndian(start, length, reinterpret.AsUnsigned(value, length))
 }
 
 // SetSignedBitsBigEndian sets the big-endian bit range [start, start+length) to the provided signed value.
-func (d *Data) SetSignedBitsBigEndian(start, length uint8, value int64) {
+func (d *Data) SetSignedBitsBigEndian(start, length uint16, value int64) {
 	d.SetUnsignedBitsBigEndian(start, length, reinterpret.AsUnsigned(value, length))
 }
 
 // Bit returns the value of the i:th bit in the data as a bool.
-func (d *Data) Bit(i uint8) bool {
-	if i > 63 {
+func (d *Data) Bit(i uint16) bool {
+	if i > 8*MaxDataLength-1 {
 		return false
 	}
 	// calculate which byte the bit belongs to
-	byteIndex := i / 8
+	byteIndex := i / MaxDataLength
 	// calculate bit mask for extracting the bit
-	bitMask := uint8(1 << (i % 8))
+	bitMask := uint8(1 << (i % MaxDataLength))
 	// mocks the bit
 	bit := d[byteIndex]&bitMask > 0
 	// done
@@ -199,12 +200,12 @@ func (d *Data) Bit(i uint8) bool {
 }
 
 // SetBit sets the value of the i:th bit in the data.
-func (d *Data) SetBit(i uint8, value bool) {
-	if i > 63 {
+func (d *Data) SetBit(i uint16, value bool) {
+	if i > 8*MaxDataLength-1 {
 		return
 	}
-	byteIndex := i / 8
-	bitIndex := i % 8
+	byteIndex := i / MaxDataLength
+	bitIndex := i % MaxDataLength
 	if value {
 		d[byteIndex] |= uint8(1 << bitIndex)
 	} else {
@@ -215,66 +216,80 @@ func (d *Data) SetBit(i uint8, value bool) {
 // PackLittleEndian packs the data into a contiguous uint64 value for little-endian signals.
 func (d *Data) PackLittleEndian() uint64 {
 	var packed uint64
-	packed |= uint64(d[0]) << (0 * 8)
-	packed |= uint64(d[1]) << (1 * 8)
-	packed |= uint64(d[2]) << (2 * 8)
-	packed |= uint64(d[3]) << (3 * 8)
-	packed |= uint64(d[4]) << (4 * 8)
-	packed |= uint64(d[5]) << (5 * 8)
-	packed |= uint64(d[6]) << (6 * 8)
-	packed |= uint64(d[7]) << (7 * 8)
+	for i := 0; i < MaxDataLength; i++ {
+		packed |= uint64(d[i]) << (i * MaxDataLength)
+	}
+	// packed |= uint64(d[0]) << (0 * 8)
+	// packed |= uint64(d[1]) << (1 * 8)
+	// packed |= uint64(d[2]) << (2 * 8)
+	// packed |= uint64(d[3]) << (3 * 8)
+	// packed |= uint64(d[4]) << (4 * 8)
+	// packed |= uint64(d[5]) << (5 * 8)
+	// packed |= uint64(d[6]) << (6 * 8)
+	// packed |= uint64(d[7]) << (7 * 8)
 	return packed
 }
 
 // PackBigEndian packs the data into a contiguous uint64 value for big-endian signals.
 func (d *Data) PackBigEndian() uint64 {
 	var packed uint64
-	packed |= uint64(d[0]) << (7 * 8)
-	packed |= uint64(d[1]) << (6 * 8)
-	packed |= uint64(d[2]) << (5 * 8)
-	packed |= uint64(d[3]) << (4 * 8)
-	packed |= uint64(d[4]) << (3 * 8)
-	packed |= uint64(d[5]) << (2 * 8)
-	packed |= uint64(d[6]) << (1 * 8)
-	packed |= uint64(d[7]) << (0 * 8)
+	for i := 0; i < MaxDataLength; i++ {
+		bitIndex := MaxDataLength - i - 1
+		packed |= uint64(d[i]) << (bitIndex * MaxDataLength)
+	}
+	// packed |= uint64(d[0]) << (7 * 8)
+	// packed |= uint64(d[1]) << (6 * 8)
+	// packed |= uint64(d[2]) << (5 * 8)
+	// packed |= uint64(d[3]) << (4 * 8)
+	// packed |= uint64(d[4]) << (3 * 8)
+	// packed |= uint64(d[5]) << (2 * 8)
+	// packed |= uint64(d[6]) << (1 * 8)
+	// packed |= uint64(d[7]) << (0 * 8)
 	return packed
 }
 
 // UnpackLittleEndian sets the value of d.Bytes by unpacking the provided value as sequential little-endian bits.
 func (d *Data) UnpackLittleEndian(packed uint64) {
-	d[0] = uint8(packed >> (0 * 8))
-	d[1] = uint8(packed >> (1 * 8))
-	d[2] = uint8(packed >> (2 * 8))
-	d[3] = uint8(packed >> (3 * 8))
-	d[4] = uint8(packed >> (4 * 8))
-	d[5] = uint8(packed >> (5 * 8))
-	d[6] = uint8(packed >> (6 * 8))
-	d[7] = uint8(packed >> (7 * 8))
+	for i := 0; i < MaxDataLength; i++ {
+		d[i] = uint8(packed >> (i * MaxDataLength))
+	}
+	// d[0] = uint8(packed >> (0 * 8))
+	// d[1] = uint8(packed >> (1 * 8))
+	// d[2] = uint8(packed >> (2 * 8))
+	// d[3] = uint8(packed >> (3 * 8))
+	// d[4] = uint8(packed >> (4 * 8))
+	// d[5] = uint8(packed >> (5 * 8))
+	// d[6] = uint8(packed >> (6 * 8))
+	// d[7] = uint8(packed >> (7 * 8))
 }
 
 // UnpackBigEndian sets the value of d.Bytes by unpacking the provided value as sequential big-endian bits.
 func (d *Data) UnpackBigEndian(packed uint64) {
-	d[0] = uint8(packed >> (7 * 8))
-	d[1] = uint8(packed >> (6 * 8))
-	d[2] = uint8(packed >> (5 * 8))
-	d[3] = uint8(packed >> (4 * 8))
-	d[4] = uint8(packed >> (3 * 8))
-	d[5] = uint8(packed >> (2 * 8))
-	d[6] = uint8(packed >> (1 * 8))
-	d[7] = uint8(packed >> (0 * 8))
+	for i := 0; i < MaxDataLength; i++ {
+		bitIndex := MaxDataLength - i - 1
+		d[i] = uint8(packed >> (bitIndex * MaxDataLength))
+	}
+	// d[0] = uint8(packed >> (7 * 8))
+	// d[1] = uint8(packed >> (6 * 8))
+	// d[2] = uint8(packed >> (5 * 8))
+	// d[3] = uint8(packed >> (4 * 8))
+	// d[4] = uint8(packed >> (3 * 8))
+	// d[5] = uint8(packed >> (2 * 8))
+	// d[6] = uint8(packed >> (1 * 8))
+	// d[7] = uint8(packed >> (0 * 8))
 }
 
 // invertEndian converts from big-endian to little-endian bit indexing and vice versa.
-func invertEndian(i uint8) uint8 {
+func invertEndian(i uint16) uint16 {
 	row := i / 8
 	col := i % 8
-	oppositeRow := 7 - row
+	oppositeRow := MaxDataLength - 1 - row
 	bitIndex := (oppositeRow * 8) + col
 	return bitIndex
 }
 
 // CheckBitRangeLittleEndian checks that a little-endian bit range fits in the data.
-func CheckBitRangeLittleEndian(frameLength, rangeStart, rangeLength uint8) error {
+func CheckBitRangeLittleEndian(frameLength, rangeStart, rangeLength uint16) error {
 	lsbIndex := rangeStart
 	msbIndex := rangeStart + rangeLength - 1
 	upperBound := frameLength * 8
@@ -285,7 +300,7 @@ func CheckBitRangeLittleEndian(frameLength, rangeStart, rangeLength uint8) error
 }
 
 // CheckBitRangeBigEndian checks that a big-endian bit range fits in the data.
-func CheckBitRangeBigEndian(frameLength, rangeStart, rangeLength uint8) error {
+func CheckBitRangeBigEndian(frameLength, rangeStart, rangeLength uint16) error {
 	upperBound := frameLength * 8
 	if rangeStart >= upperBound {
 		return fmt.Errorf("bit range starts out of bounds [0, %v): %v", upperBound, rangeStart)
@@ -300,10 +315,43 @@ func CheckBitRangeBigEndian(frameLength, rangeStart, rangeLength uint8) error {
 }
 
 // CheckValue checks that a value fits in a number of bits.
-func CheckValue(value uint64, bits uint8) error {
+func CheckValue(value uint64, bits uint16) error {
 	upperBound := uint64(1 << bits)
 	if value >= upperBound {
 		return fmt.Errorf("value out of bounds [0, %v): %v", upperBound, value)
 	}
 	return nil
+}
+
+// CreateCANFrame returns the CAN data as a can.Data object for decoding
+func CreateCANFrame(bytes []byte) Data {
+	var d Data
+	bits := CanBits(bytes)
+	for i, b := range bits {
+		bit, _ := strconv.ParseBool(string(b))
+		d.SetBit(uint16(i), bit)
+
+	}
+	return d
+}
+
+// CanBits creates the zig zag pattern of bits feeding into a can.Data frame
+func CanBits(bytes []byte) string {
+	var bits string
+	for _, n := range bytes {
+		bn := fmt.Sprintf("%08b", n)
+
+		// Need to reverse the binary strings because of the definition of bit order
+		bits += reverse(bn)
+	}
+	return bits
+}
+
+// function to reverse strings
+func reverse(s string) string {
+	runes := []rune(s)
+	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
+		runes[i], runes[j] = runes[j], runes[i]
+	}
+	return string(runes)
 }
