@@ -99,7 +99,7 @@ func newDriverHeartbeatDescriptor() *descriptor.Message {
 		Name:        (string)("DriverHeartbeat"),
 		ID:          (uint32)(100),
 		IsExtended:  (bool)(false),
-		Length:      (uint8)(1),
+		Length:      (uint16)(1),
 		Description: (string)("Sync message used to synchronize the controllers"),
 		SendType:    descriptor.SendTypeCyclic,
 		CycleTime:   100 * time.Millisecond,
@@ -150,7 +150,7 @@ func newMotorStatusDescriptor() *descriptor.Message {
 		Name:        (string)("MotorStatus"),
 		ID:          (uint32)(400),
 		IsExtended:  (bool)(false),
-		Length:      (uint8)(3),
+		Length:      (uint16)(3),
 		Description: (string)(""),
 		Signals: []*descriptor.Signal{
 			{

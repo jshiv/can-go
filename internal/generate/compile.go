@@ -62,7 +62,7 @@ func (c *compiler) collectDescriptors() {
 				Name:       string(def.Name),
 				ID:         def.MessageID.ToCAN(),
 				IsExtended: def.MessageID.IsExtended(),
-				Length:     uint8(def.Size),
+				Length:     uint16(def.Size),
 				SenderNode: string(def.Transmitter),
 			}
 			for _, signalDef := range def.Signals {
