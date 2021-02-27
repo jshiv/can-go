@@ -245,7 +245,7 @@ func (p *Payload) PackLittleEndian() *big.Int {
 	if p.PackedLittleEndian == nil {
 		// Initialize a big.Int called packed
 		//var packed, _ = new(big.Int).SetString(strings.Repeat("00000000", int(p.Length)), 2)
-		var packed, _ = new(big.Int).SetString(reverse(CanBits(p.Data)), 2)
+		var packed, _ = new(big.Int).SetString(CanBitsLittleEndian(p.Data), 2)
 
 		// for i := 0; i < int(p.Length); i++ {
 		// 	//packed |= uint8(packed >> (i * 8))
@@ -257,14 +257,24 @@ func (p *Payload) PackLittleEndian() *big.Int {
 	return p.PackedLittleEndian
 }
 
-// CanBits creates the zig zag pattern of bits feeding into a can.Data frame
-func CanBits(bytes []byte) string {
+// CanBitsLittleEndian creates the zig zag pattern of bits feeding into a can.Data frame
+func CanBitsLittleEndian(bytes []byte) string {
 	var bits string
 	for _, n := range bytes {
 		bn := fmt.Sprintf("%08b", n)
 
 		// Need to reverse the binary strings because of the definition of bit order
 		bits += reverse(bn)
+	}
+	return reverse(bits)
+}
+
+// CanBitsBigEndian creates the zig zag pattern of bits feeding into a can.Data frame
+func CanBitsBigEndian(bytes []byte) string {
+	var bits string
+	for _, n := range bytes {
+		bn := fmt.Sprintf("%08b", n)
+		bits += bn
 	}
 	return bits
 }
@@ -294,9 +304,7 @@ func reverse(s string) string {
 
 func (p *Payload) PackBigEndian() *big.Int {
 	if p.PackedBigEndian == nil {
-		//var packed, _ = new(big.Int).SetString(CanBits(p.Data), 2)
-		var packed = new(big.Int)
-		packed.SetBytes(p.Data)
+		var packed, _ = new(big.Int).SetString(CanBitsBigEndian(p.Data), 2)
 		p.PackedBigEndian = packed
 	}
 	return p.PackedBigEndian
