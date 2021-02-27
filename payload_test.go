@@ -34,3 +34,19 @@ func TestPackBigEndian(t *testing.T) {
 	// 	t.Errorf("fmt.Sprintf('%08b', dataBigEndian)  = %s); want 10000000010001100000001000100100", fmt.Sprintf("%08b", dataBigEndian))
 	// }
 }
+
+func Benchmark4BytesPayload_PackLittleEndian(b *testing.B) {
+	data := []byte{0x40, 0x23, 0x01, 0x12}
+	payload := Payload{Data: data}
+	for i := 0; i < b.N; i++ {
+		_ = payload.PackLittleEndian()
+	}
+}
+
+func Benchmark4BytesPayload_PackBigEndian(b *testing.B) {
+	data := []byte{0x40, 0x23, 0x01, 0x12}
+	payload := Payload{Data: data}
+	for i := 0; i < b.N; i++ {
+		_ = payload.PackBigEndian()
+	}
+}
