@@ -226,70 +226,70 @@ func TestDecodeDisconnectState(t *testing.T) {
 			name:        "VDM_TargetSpeedRL",
 			value:       0.0,
 			description: "",
-			unit:        "degC",
+			unit:        "rad/s",
 		},
 		{
 
 			name:        "VDM_DiscoStateRL_Target",
 			value:       0,
 			description: "",
-			unit:        "degC",
+			unit:        "",
 		},
 		{
 
 			name:        "VDM_CurrentSenseRL",
 			value:       4,
 			description: "",
-			unit:        "kPa",
+			unit:        "",
 		},
 		{
 
 			name:        "VDM_DiscoStateRL",
 			value:       2,
 			description: "Unlocked",
-			unit:        "kPa",
+			unit:        "",
 		},
 		{
 
 			name:        "VDM_LockCountRL",
 			value:       1560,
 			description: "",
-			unit:        "RPM",
+			unit:        "",
 		},
 		{
 
 			name:        "VDM_TargetSpeedRR",
 			value:       0,
 			description: "",
-			unit:        "RPM",
+			unit:        "rad/s",
 		},
 		{
 
 			name:        "VDM_DiscoStateRR_Target",
 			value:       0,
 			description: "",
-			unit:        "RPM",
+			unit:        "",
 		},
 		{
 
 			name:        "VDM_CurrentSenseRR",
 			value:       5,
 			description: "",
-			unit:        "degC",
+			unit:        "",
 		},
 		{
 
 			name:        "VDM_DiscoStateRR",
 			value:       2,
 			description: "Unlocked",
-			unit:        "degC",
+			unit:        "",
 		},
 		{
 
 			name:        "VDM_LockCountRR",
 			value:       1536,
 			description: "",
-			unit:        "degC",
+			unit:        "",
 		},
 	}
 
