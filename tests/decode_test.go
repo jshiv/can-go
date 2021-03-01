@@ -6,9 +6,12 @@ import (
 
 	"go.einride.tech/can"
 	"go.einride.tech/can/internal/generate"
+	"go.einride.tech/can/pkg/descriptor"
 )
 
-var dbc = []byte(`
+var (
+	db  = getDatabase()
+	dbc = []byte(`
 VERSION ""
 NS_ :
 BS_:
@@ -107,12 +110,19 @@ VAL_ 1530 VDM_DiscoStateRL 0 "Undefined" 1 "Locked" 2 "Unlocked" 3 "Locking" 4 "
 
 SIG_GROUP_ 1530 VDM_DisconnectState 1 : VDM_DiscoStateRL_Target VDM_DiscoStateRL VDM_CurrentSenseRL VDM_TargetSpeedRL VDM_LockCountRL VDM_DiscoStateRR_Target VDM_DiscoStateRR VDM_CurrentSenseRR VDM_TargetSpeedRR VDM_LockCountRR;
 `)
+)
 
 type signal struct {
 	name        string
 	value       float64
 	description string
 	unit        string
+}
+
+func getDatabase() descriptor.Database {
+	c, _ := generate.Compile("test.dbc", dbc)
+	db := *c.Database
+	return db
 }
 
 func TestDecodeEACVariables(t *testing.T) {
@@ -199,7 +209,6 @@ func TestDecodeEACVariables(t *testing.T) {
 			t.Errorf("signal[%s] value = %f ; expected: %f", name, value, expectedMap[name].value)
 		}
 	}
-
 }
 
 func TestDecodeDisconnectState(t *testing.T) {
@@ -210,11 +219,6 @@ func TestDecodeDisconnectState(t *testing.T) {
 		fmt.Println(err)
 	}
 	fmt.Println(p.Data)
-	c, err := generate.Compile("test.dbc", dbc)
-	if err != nil {
-		t.Errorf("err = %v; want nil", err)
-	}
-	db := *c.Database
 
 	expected := []signal{
 		{
@@ -307,5 +311,62 @@ func TestDecodeDisconnectState(t *testing.T) {
 		if valueDesc != expectedMap[name].description {
 			t.Errorf("signal[%s] value = %s ; expected: %s", name, valueDesc, expectedMap[name].description)
 		}
+	}
+}
+
+func TestDecodeSensorSonarsData(t *testing.T) {
+
+	data := can.Data{0x01, 0x01, 0x01, 0x02, 0x01, 0x00}
+	payload := can.Payload{Data: []byte{0x01, 0x01, 0x01, 0x02, 0x01, 0x00}}
+
+	message, _ := db.Message(uint32(500))
+	for _, signal := range message.Signals {
+		value := signal.UnmarshalPhysicalPayload(payload)
+		valueDesc, _ := signal.UnmarshalValueDescriptionPayload(payload)
+
+		valueFromData := signal.UnmarshalPhysical(data)
+		descFromData, _ := signal.UnmarshalValueDescription(data)
+		name := signal.Name
+
+		if value != valueFromData {
+			t.Errorf("signal[%s] value = %f ; expected: %f", name, value, valueFromData)
+		}
+
+		if valueDesc != descFromData {
+			t.Errorf("signal[%s] value = %s ; expected: %s", name, valueDesc, descFromData)
+		}
+	}
+}
+
+func BenchmarkDecodeData(b *testing.B) {
+
+	data := can.Data{0x01, 0x01, 0x01, 0x02, 0x01, 0x00}
+
+	message, _ := db.Message(uint32(500))
+	decodeSignal := func() {
+		for _, signal := range message.Signals {
+			_ = signal.UnmarshalPhysical(data)
+			_, _ = signal.UnmarshalValueDescription(data)
+		}
+	}
+	for i := 0; i < b.N; i++ {
+		decodeSignal()
+	}
+}
+
+func BenchmarkDecodePayload(b *testing.B) {
+
+	data := can.Payload{Data: []byte{0x01, 0x01, 0x01, 0x02, 0x01, 0x00}}
+	// {0x01, 0x01, 0x01, 0x02, 0x01, 0x00}
+
+	message, _ := db.Message(uint32(500))
+	decodeSignal := func() {
+		for _, signal := range message.Signals {
+			_ = signal.UnmarshalPhysicalPayload(data)
+			_, _ = signal.UnmarshalValueDescriptionPayload(data)
+		}
+	}
+	for i := 0; i < b.N; i++ {
+		decodeSignal()
 	}
 }
