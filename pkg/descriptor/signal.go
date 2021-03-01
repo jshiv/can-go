@@ -144,6 +144,14 @@ func (s *Signal) UnmarshalUnsigned(d can.Data) uint64 {
 	return d.UnsignedBitsLittleEndian(uint8(s.Start), uint8(s.Length))
 }
 
+// UnmarshalUnsignedPayload returns the unsigned value of the signal in the provided CAN frame.
+func (s *Signal) UnmarshalUnsignedPayload(p can.Payload) uint64 {
+	if s.IsBigEndian {
+		return p.UnsignedBitsBigEndian(s.Start, s.Length)
+	}
+	return p.UnsignedBitsLittleEndian(s.Start, s.Length)
+}
+
 // UnmarshalValueDescription returns the value description of the signal in the provided CAN data.
 func (s *Signal) UnmarshalValueDescription(d can.Data) (string, bool) {
 	if len(s.ValueDescriptions) == 0 {
@@ -158,12 +166,34 @@ func (s *Signal) UnmarshalValueDescription(d can.Data) (string, bool) {
 	return s.ValueDescription(intValue)
 }
 
+// UnmarshalValueDescriptionPayload returns the value description of the signal in the provided CAN data.
+func (s *Signal) UnmarshalValueDescriptionPayload(p can.Payload) (string, bool) {
+	if len(s.ValueDescriptions) == 0 {
+		return "", false
+	}
+	var intValue int
+	if s.IsSigned {
+		intValue = int(s.UnmarshalSignedPayload(p))
+	} else {
+		intValue = int(s.UnmarshalUnsignedPayload(p))
+	}
+	return s.ValueDescription(intValue)
+}
+
 // UnmarshalSigned returns the signed value of the signal in the provided CAN frame.
 func (s *Signal) UnmarshalSigned(d can.Data) int64 {
 	if s.IsBigEndian {
 		return d.SignedBitsBigEndian(uint8(s.Start), uint8(uint8(s.Length)))
 	}
 	return d.SignedBitsLittleEndian(uint8(s.Start), uint8(uint8(s.Length)))
+}
+
+// UnmarshalSignedPayload returns the signed value of the signal in the provided CAN frame.
+func (s *Signal) UnmarshalSignedPayload(p can.Payload) int64 {
+	if s.IsBigEndian {
+		return p.SignedBitsBigEndian(s.Start, s.Length)
+	}
+	return p.SignedBitsLittleEndian(s.Start, s.Length)
 }
 
 // UnmarshalBool returns the bool value of the signal in the provided CAN frame.
