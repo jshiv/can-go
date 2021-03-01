@@ -108,6 +108,13 @@ VAL_ 1530 VDM_DiscoStateRL 0 "Undefined" 1 "Locked" 2 "Unlocked" 3 "Locking" 4 "
 SIG_GROUP_ 1530 VDM_DisconnectState 1 : VDM_DiscoStateRL_Target VDM_DiscoStateRL VDM_CurrentSenseRL VDM_TargetSpeedRL VDM_LockCountRL VDM_DiscoStateRR_Target VDM_DiscoStateRR VDM_CurrentSenseRR VDM_TargetSpeedRR VDM_LockCountRR;
 `)
 
+type signal struct {
+	name        string
+	value       float64
+	description string
+	unit        string
+}
+
 func TestDecodeEACVariables(t *testing.T) {
 
 	c, err := generate.Compile("test.dbc", dbc)
@@ -117,13 +124,6 @@ func TestDecodeEACVariables(t *testing.T) {
 
 	db := *c.Database
 	message, _ := db.Message(uint32(1927))
-
-	type Sig struct {
-		name        string
-		value       float64
-		description string
-		unit        string
-	}
 
 	canDataHexString := "008232204e027600ca4b0007d296"
 
@@ -135,7 +135,7 @@ func TestDecodeEACVariables(t *testing.T) {
 
 	fmt.Println(payload.Hex())
 
-	expected := []Sig{
+	expected := []signal{
 		{
 			name:        "TMM_EvapAirOutTTgt",
 			value:       6.0,
@@ -186,7 +186,7 @@ func TestDecodeEACVariables(t *testing.T) {
 		},
 	}
 
-	var expectedMap = make(map[string]Sig)
+	var expectedMap = make(map[string]signal)
 	for _, s := range expected {
 		expectedMap[s.name] = s
 	}
@@ -216,10 +216,96 @@ func TestDecodeDisconnectState(t *testing.T) {
 	}
 	db := *c.Database
 
+	expected := []signal{
+		{
+
+			name:        "VDM_TargetSpeedRL",
+			value:       0.0,
+			description: "",
+			unit:        "degC",
+		},
+		{
+
+			name:        "VDM_DiscoStateRL_Target",
+			value:       0,
+			description: "",
+			unit:        "degC",
+		},
+		{
+
+			name:        "VDM_CurrentSenseRL",
+			value:       4,
+			description: "",
+			unit:        "kPa",
+		},
+		{
+
+			name:        "VDM_DiscoStateRL",
+			value:       2,
+			description: "Unlocked",
+			unit:        "kPa",
+		},
+		{
+
+			name:        "VDM_LockCountRL",
+			value:       1560,
+			description: "",
+			unit:        "RPM",
+		},
+		{
+
+			name:        "VDM_TargetSpeedRR",
+			value:       0,
+			description: "",
+			unit:        "RPM",
+		},
+		{
+
+			name:        "VDM_DiscoStateRR_Target",
+			value:       0,
+			description: "",
+			unit:        "RPM",
+		},
+		{
+
+			name:        "VDM_CurrentSenseRR",
+			value:       5,
+			description: "",
+			unit:        "degC",
+		},
+		{
+
+			name:        "VDM_DiscoStateRR",
+			value:       2,
+			description: "Unlocked",
+			unit:        "degC",
+		},
+		{
+
+			name:        "VDM_LockCountRR",
+			value:       1536,
+			description: "",
+			unit:        "degC",
+		},
+	}
+
+	var expectedMap = make(map[string]signal)
+	for _, s := range expected {
+		expectedMap[s.name] = s
+	}
+
 	message, _ := db.Message(uint32(1530))
 	for _, signal := range message.Signals {
-		valueDesc, _ := signal.UnmarshalValueDescriptionPayload(p)
 		value := signal.UnmarshalPhysicalPayload(p)
-		fmt.Printf("name: %s, value: %f, desc: %s, unit: %s\n", signal.Name, value, valueDesc, signal.Unit)
+		valueDesc, _ := signal.UnmarshalValueDescriptionPayload(p)
+		name := signal.Name
+
+		if value != expectedMap[name].value {
+			t.Errorf("signal[%s] value = %f ; expected: %f", name, value, expectedMap[name].value)
+		}
+
+		if valueDesc != expectedMap[name].description {
+			t.Errorf("signal[%s] value = %s ; expected: %s", name, valueDesc, expectedMap[name].description)
+		}
 	}
 }
