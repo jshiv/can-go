@@ -131,6 +131,7 @@ func PayloadFromHex(hexString string) (Payload, error) {
 // UnsignedBitsLittleEndian returns the little-endian bit range [start, start+length) as an unsigned value.
 func (p *Payload) UnsignedBitsLittleEndian(start, length uint16) uint64 {
 	// pack bits into one continuous value
+
 	packed := p.PackLittleEndian()
 	// lsb index in the packed value is the start bit
 	lsbIndex := uint(start)
@@ -268,7 +269,7 @@ func (p *Payload) PackLittleEndian() *big.Int {
 	if p.PackedLittleEndian == nil {
 		// Initialize a big.Int called packed
 		//var packed, _ = new(big.Int).SetString(strings.Repeat("00000000", int(p.Length)), 2)
-		var packed, _ = new(big.Int).SetString(CanBitsLittleEndian(p.Data), 2)
+		packed, _ := new(big.Int).SetString(CanBitsLittleEndian(p.Data), 2)
 
 		// for i := 0; i < int(p.Length); i++ {
 		// 	//packed |= uint8(packed >> (i * 8))
@@ -277,7 +278,7 @@ func (p *Payload) PackLittleEndian() *big.Int {
 		//packed.SetBytes(p.Data)
 		p.PackedLittleEndian = packed
 	}
-	return p.PackedLittleEndian
+	return new(big.Int).Set(p.PackedLittleEndian)
 }
 
 // CanBitsLittleEndian creates the zig zag pattern of bits feeding into a can.Data frame
@@ -330,7 +331,7 @@ func (p *Payload) PackBigEndian() *big.Int {
 		var packed, _ = new(big.Int).SetString(CanBitsBigEndian(p.Data), 2)
 		p.PackedBigEndian = packed
 	}
-	return p.PackedBigEndian
+	return new(big.Int).Set(p.PackedBigEndian)
 }
 
 // // UnpackLittleEndian sets the value of d.Bytes by unpacking the provided value as sequential little-endian bits.

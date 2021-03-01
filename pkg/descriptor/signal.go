@@ -110,7 +110,7 @@ func (s *Signal) UnmarshalPhysical(d can.Data) float64 {
 }
 
 // UnmarshalPhysicalPayload returns the physical value of the signal in the provided CAN frame.
-func (s *Signal) UnmarshalPhysicalPayload(p can.Payload) float64 {
+func (s *Signal) UnmarshalPhysicalPayload(p *can.Payload) float64 {
 	switch {
 	case uint8(s.Length) == 1:
 		if p.Bit(s.Start) {
@@ -145,7 +145,7 @@ func (s *Signal) UnmarshalUnsigned(d can.Data) uint64 {
 }
 
 // UnmarshalUnsignedPayload returns the unsigned value of the signal in the provided CAN frame.
-func (s *Signal) UnmarshalUnsignedPayload(p can.Payload) uint64 {
+func (s *Signal) UnmarshalUnsignedPayload(p *can.Payload) uint64 {
 	if s.IsBigEndian {
 		return p.UnsignedBitsBigEndian(s.Start, s.Length)
 	}
@@ -167,7 +167,7 @@ func (s *Signal) UnmarshalValueDescription(d can.Data) (string, bool) {
 }
 
 // UnmarshalValueDescriptionPayload returns the value description of the signal in the provided CAN data.
-func (s *Signal) UnmarshalValueDescriptionPayload(p can.Payload) (string, bool) {
+func (s *Signal) UnmarshalValueDescriptionPayload(p *can.Payload) (string, bool) {
 	if len(s.ValueDescriptions) == 0 {
 		return "", false
 	}
@@ -189,7 +189,7 @@ func (s *Signal) UnmarshalSigned(d can.Data) int64 {
 }
 
 // UnmarshalSignedPayload returns the signed value of the signal in the provided CAN frame.
-func (s *Signal) UnmarshalSignedPayload(p can.Payload) int64 {
+func (s *Signal) UnmarshalSignedPayload(p *can.Payload) int64 {
 	if s.IsBigEndian {
 		return p.SignedBitsBigEndian(s.Start, s.Length)
 	}

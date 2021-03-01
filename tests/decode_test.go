@@ -202,7 +202,7 @@ func TestDecodeEACVariables(t *testing.T) {
 	}
 
 	for _, signal := range message.Signals {
-		value := signal.UnmarshalPhysicalPayload(payload)
+		value := signal.UnmarshalPhysicalPayload(&payload)
 		name := signal.Name
 
 		if value != expectedMap[name].value {
@@ -300,8 +300,8 @@ func TestDecodeDisconnectState(t *testing.T) {
 
 	message, _ := db.Message(uint32(1530))
 	for _, signal := range message.Signals {
-		value := signal.UnmarshalPhysicalPayload(p)
-		valueDesc, _ := signal.UnmarshalValueDescriptionPayload(p)
+		value := signal.UnmarshalPhysicalPayload(&p)
+		valueDesc, _ := signal.UnmarshalValueDescriptionPayload(&p)
 		name := signal.Name
 
 		if value != expectedMap[name].value {
@@ -317,12 +317,14 @@ func TestDecodeDisconnectState(t *testing.T) {
 func TestDecodeSensorSonarsData(t *testing.T) {
 
 	data := can.Data{0x01, 0x01, 0x01, 0x02, 0x01, 0x00}
-	payload := can.Payload{Data: []byte{0x01, 0x01, 0x01, 0x02, 0x01, 0x00}}
+	payload := can.Payload{Data: data[:]}
 
 	message, _ := db.Message(uint32(500))
+	fmt.Println(message.Length)
+
 	for _, signal := range message.Signals {
-		value := signal.UnmarshalPhysicalPayload(payload)
-		valueDesc, _ := signal.UnmarshalValueDescriptionPayload(payload)
+		value := signal.UnmarshalPhysicalPayload(&payload)
+		valueDesc, _ := signal.UnmarshalValueDescriptionPayload(&payload)
 
 		valueFromData := signal.UnmarshalPhysical(data)
 		descFromData, _ := signal.UnmarshalValueDescription(data)
@@ -340,10 +342,9 @@ func TestDecodeSensorSonarsData(t *testing.T) {
 
 func BenchmarkDecodeData(b *testing.B) {
 
-	data := can.Data{0x01, 0x01, 0x01, 0x02, 0x01, 0x00}
-
 	message, _ := db.Message(uint32(500))
 	decodeSignal := func() {
+		data := can.Data{0x01, 0x01, 0x01, 0x02, 0x01, 0x00}
 		for _, signal := range message.Signals {
 			_ = signal.UnmarshalPhysical(data)
 			_, _ = signal.UnmarshalValueDescription(data)
@@ -356,14 +357,14 @@ func BenchmarkDecodeData(b *testing.B) {
 
 func BenchmarkDecodePayload(b *testing.B) {
 
-	data := can.Payload{Data: []byte{0x01, 0x01, 0x01, 0x02, 0x01, 0x00}}
 	// {0x01, 0x01, 0x01, 0x02, 0x01, 0x00}
 
 	message, _ := db.Message(uint32(500))
 	decodeSignal := func() {
+		data := can.Payload{Data: []byte{0x01, 0x01, 0x01, 0x02, 0x01, 0x00}}
 		for _, signal := range message.Signals {
-			_ = signal.UnmarshalPhysicalPayload(data)
-			_, _ = signal.UnmarshalValueDescriptionPayload(data)
+			_ = signal.UnmarshalPhysicalPayload(&data)
+			_, _ = signal.UnmarshalValueDescriptionPayload(&data)
 		}
 	}
 	for i := 0; i < b.N; i++ {
