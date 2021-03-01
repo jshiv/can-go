@@ -1,6 +1,7 @@
 package can
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math/big"
 )
@@ -110,6 +111,21 @@ type Payload struct {
 
 	// Packed big endian
 	PackedBigEndian *big.Int
+}
+
+func (p *Payload) Hex() string {
+	h := hex.EncodeToString(p.Data)
+	return h
+}
+
+func PayloadFromHex(hexString string) (Payload, error) {
+	b, err := hex.DecodeString(hexString)
+	var p Payload
+	if err != nil {
+		return p, err
+	}
+	p = Payload{Data: b}
+	return p, nil
 }
 
 // UnsignedBitsLittleEndian returns the little-endian bit range [start, start+length) as an unsigned value.
