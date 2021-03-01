@@ -113,42 +113,49 @@ type Payload struct {
 }
 
 // UnsignedBitsLittleEndian returns the little-endian bit range [start, start+length) as an unsigned value.
-// func (p *Payload) UnsignedBitsLittleEndian(start, length uint8) uint64 {
-// 	// pack bits into one continuous value
-// 	packed := p.PackLittleEndian()
-// 	// lsb index in the packed value is the start bit
-// 	lsbIndex := start
-// 	// shift away lower bits
-// 	shifted := packed >> lsbIndex
-// 	// mask away higher bits
-// 	masked := shifted & ((1 << length) - 1)
-// 	// done
-// 	return masked
-// }
+func (p *Payload) UnsignedBitsLittleEndian(start, length uint16) uint64 {
+	// pack bits into one continuous value
+	packed := p.PackLittleEndian()
+	// lsb index in the packed value is the start bit
+	lsbIndex := uint(start)
+	// shift away lower bits
+	shifted := packed.Rsh(packed, lsbIndex)
+	// mask away higher bits
+	//masked := shifted & ((1 << length) - 1)
+	masked := shifted.And(shifted, big.NewInt((1<<length)-1))
+	// done
+	return masked.Uint64()
+}
 
-// // UnsignedBitsBigEndian returns the big-endian bit range [start, start+length) as an unsigned value.
-// func (d *Data) UnsignedBitsBigEndian(start, length uint8) uint64 {
-// 	// pack bits into one continuous value
-// 	packed := d.PackBigEndian()
-// 	// calculate msb index in the packed value
-// 	msbIndex := invertEndian(start)
-// 	// calculate lsb index in the packed value
-// 	lsbIndex := msbIndex - length + 1
-// 	// shift away lower bits
-// 	shifted := packed >> lsbIndex
-// 	// mask away higher bits
-// 	masked := shifted & ((1 << length) - 1)
-// 	// done
-// 	return masked
-// }
+// UnsignedBitsBigEndian returns the big-endian bit range [start, start+length) as an unsigned value.
+func (p *Payload) UnsignedBitsBigEndian(start, length uint16) uint64 {
+	// pack bits into one continuous value
+	packed := p.PackBigEndian()
+	// calculate msb index in the packed value
+	msbIndex := p.invertEndian(start)
+	// calculate lsb index in the packed value
+	lsbIndex := uint(msbIndex - length + 1)
+	// shift away lower bits
+	shifted := packed.Rsh(packed, lsbIndex)
+	// mask away higher bits
+	masked := shifted.And(shifted, big.NewInt((1<<length)-1))
+	// done
+	return masked.Uint64()
+}
 
-// // SignedBitsLittleEndian returns little-endian bit range [start, start+length) as a signed value.
-// func (d *Data) SignedBitsLittleEndian(start, length uint8) int64 {
-// 	unsigned := d.UnsignedBitsLittleEndian(start, length)
-// 	return reinterpret.AsSigned(unsigned, length)
-// }
+// SignedBitsLittleEndian returns little-endian bit range [start, start+length) as a signed value.
+func (p *Payload) SignedBitsLittleEndian(start, length uint16) int64 {
+	unsigned := p.UnsignedBitsLittleEndian(start, length)
+	return AsSigned(unsigned, length)
+}
 
-// // SignedBitsBigEndian returns little-endian bit range [start, start+length) as a signed value.
+// SignedBitsBigEndian returns little-endian bit range [start, start+length) as a signed value.
+func (p *Payload) SignedBitsBigEndian(start, length uint16) int64 {
+	unsigned := p.UnsignedBitsBigEndian(start, length)
+	return AsSigned(unsigned, length)
+}
+
+// SignedBitsBigEndian returns little-endian bit range [start, start+length) as a signed value.
 // func (d *Data) SignedBitsBigEndian(start, length uint8) int64 {
 // 	unsigned := d.UnsignedBitsBigEndian(start, length)
 // 	return reinterpret.AsSigned(unsigned, length)
@@ -334,14 +341,14 @@ func (p *Payload) PackBigEndian() *big.Int {
 // 	d[7] = uint8(packed >> (0 * 8))
 // }
 
-// // invertEndian converts from big-endian to little-endian bit indexing and vice versa.
-// func invertEndian(i uint8) uint8 {
-// 	row := i / 8
-// 	col := i % 8
-// 	oppositeRow := 7 - row
-// 	bitIndex := (oppositeRow * 8) + col
-// 	return bitIndex
-// }
+// invertEndian converts from big-endian to little-endian bit indexing and vice versa.
+func (p *Payload) invertEndian(i uint16) uint16 {
+	row := i / 8
+	col := i % 8
+	oppositeRow := uint16(len(p.Data)) - row - 1
+	bitIndex := (oppositeRow * 8) + col
+	return bitIndex
+}
 
 // // CheckBitRangeLittleEndian checks that a little-endian bit range fits in the data.
 // func CheckBitRangeLittleEndian(frameLength, rangeStart, rangeLength uint8) error {
@@ -377,3 +384,32 @@ func (p *Payload) PackBigEndian() *big.Int {
 // 	}
 // 	return nil
 // }
+
+// AsSigned reinterprets the provided unsigned value as a signed value.
+func AsSigned(unsigned uint64, bits uint16) int64 {
+	switch bits {
+	case 8:
+		return int64(int8(uint8(unsigned)))
+	case 16:
+		return int64(int16(uint16(unsigned)))
+	case 32:
+		return int64(int32(uint32(unsigned)))
+	case 64:
+		return int64(unsigned)
+	default:
+		// calculate bit mask for sign bit
+		signBitMask := uint64(1 << (bits - 1))
+		// check if sign bit is set
+		isNegative := unsigned&signBitMask > 0
+		if !isNegative {
+			// sign bit not set means we can reinterpret the value as-is
+			return int64(unsigned)
+		}
+		// calculate bit mask for extracting value bits (all bits except the sign bit)
+		valueBitMask := signBitMask - 1
+		// calculate two's complement of the value bits
+		value := ((^unsigned) & valueBitMask) + 1
+		// result is the negative value of the two's complement
+		return -1 * int64(value)
+	}
+}
