@@ -13,6 +13,7 @@ VERSION ""
 NS_ :
 BS_:
 BU_: DBG DRIVER IO MOTOR SENSOR
+
 BO_ 1 EmptyMessage: 0 DBG
 BO_ 100 DriverHeartbeat: 1 DRIVER
  SG_ Command : 0|8@1+ (1,0) [0|0] "" SENSOR,MOTOR
@@ -22,6 +23,7 @@ BO_ 101 MotorCommand: 1 DRIVER
 BO_ 400 MotorStatus: 3 MOTOR
  SG_ WheelError : 0|1@1+ (1,0) [0|0] "" DRIVER,IO
  SG_ SpeedKph : 8|16@1+ (0.001,0) [0|0] "km/h" DRIVER,IO
+
 BO_ 200 SensorSonars: 8 SENSOR
  SG_ Mux M : 0|4@1+ (1,0) [0|0] "" DRIVER,IO
  SG_ ErrCount : 4|12@1+ (1,0) [0|0] "" DRIVER,IO
@@ -33,6 +35,7 @@ BO_ 200 SensorSonars: 8 SENSOR
  SG_ NoFiltMiddle m1 : 28|12@1+ (0.1,0) [0|0] "" DBG
  SG_ NoFiltRight m1 : 40|12@1+ (0.1,0) [0|0] "" DBG
  SG_ NoFiltRear m1 : 52|12@1+ (0.1,0) [0|0] "" DBG
+
 BO_ 500 IODebug: 6 IO
  SG_ TestUnsigned : 0|8@1+ (1,0) [0|0] "" DBG
  SG_ TestEnum : 8|6@1+ (1,0) [0|0] "" DBG
@@ -40,6 +43,7 @@ BO_ 500 IODebug: 6 IO
  SG_ TestFloat : 24|8@1+ (0.5,0) [0|0] "" DBG
  SG_ TestBoolEnum : 32|1@1+ (1,0) [0|0] "" DBG
  SG_ TestScaledEnum : 40|2@1+ (2,0) [0|6] "" DBG
+
 BO_ 1530 VDM_DisconnectState: 14 VDM
  SG_ VDM_LockCountRR : 91|20@0+ (1,0) [0|1048575] ""  TCM
  SG_ VDM_DiscoStateRR : 95|4@0+ (1,0) [0|5] ""  TCM
@@ -51,6 +55,7 @@ BO_ 1530 VDM_DisconnectState: 14 VDM
  SG_ VDM_CurrentSenseRL : 23|16@0+ (1,0) [0|65535] ""  TCM
  SG_ VDM_DiscoStateRL_Target : 8|1@0+ (1,0) [0|1] ""  TCM
  SG_ VDM_TargetSpeedRL : 7|15@0+ (0.125,-2048) [-2048|2047.875] "rad/s"  TCM
+
 BO_ 1927 TMM_EACVariables: 14 TMM
  SG_ TMM_EACEvapAirTempIn : 96|8@0+ (0.4,-20) [-19.6|82.4] "degC"  TCM
  SG_ TMM_CompressorSpeedActual : 80|16@0+ (1,-1) [0|8600] "RPM"  TCM
@@ -60,6 +65,7 @@ BO_ 1927 TMM_EACVariables: 14 TMM
  SG_ TMM_FFTargetSuctionPressure : 16|16@0+ (0.05,0) [0.05|3276.8] "kPa"  TCM
  SG_ TMM_ChillerCoolantOutTTgt : 8|8@0+ (0.4,-20) [-19.6|82.4] "degC"  TCM
  SG_ TMM_EvapAirOutTTgt : 0|8@0+ (0.4,-20) [-19.6|82.4] "degC"  TCM
+
 EV_ BrakeEngaged: 0 [0|1] "" 0 10 DUMMY_NODE_VECTOR0 Vector__XXX;
 EV_ Torque: 1 [0|30000] "mNm" 500 16 DUMMY_NODE_VECTOR0 Vector__XXX;
 CM_ EV_ BrakeEngaged "Brake fully engaged";
@@ -67,6 +73,7 @@ CM_ BU_ DRIVER "The driver controller driving the car";
 CM_ BU_ MOTOR "The motor controller of the car";
 CM_ BU_ SENSOR "The sensor controller of the car";
 CM_ BO_ 100 "Sync message used to synchronize the controllers";
+
 BA_DEF_ "BusType" STRING ;
 BA_DEF_ BO_  "GenMsgSendType" ENUM  "None","Cyclic","OnEvent";
 BA_DEF_ BO_ "GenMsgCycleTime" INT 0 0;
@@ -76,6 +83,7 @@ BA_DEF_DEF_ "BusType" "CAN";
 BA_DEF_DEF_ "FieldType" "";
 BA_DEF_DEF_ "GenMsgCycleTime" 0;
 BA_DEF_DEF_ "GenSigStartValue" 0;
+
 BA_ "GenMsgSendType" BO_ 1 0;
 BA_ "GenMsgSendType" BO_ 100 1;
 BA_ "GenMsgCycleTime" BO_ 100 1000;
@@ -89,12 +97,14 @@ BA_ "GenMsgSendType" BO_ 500 2;
 BA_ "FieldType" SG_ 100 Command "Command";
 BA_ "FieldType" SG_ 500 TestEnum "TestEnum";
 BA_ "GenSigStartValue" SG_ 500 TestEnum 2;
+
 VAL_ 100 Command 2 "Reboot" 1 "Sync" 0 "None" ;
 VAL_ 500 TestEnum 2 "Two" 1 "One" ;
 VAL_ 500 TestScaledEnum 3 "Six" 2 "Four" 1 "Two" 0 "Zero" ;
 VAL_ 500 TestBoolEnum 1 "One" 0 "Zero" ;
 VAL_ 1530 VDM_DiscoStateRR 0 "Undefined" 1 "Locked" 2 "Unlocked" 3 "Locking" 4 "Unlocking" 5 "Faulted" ;
 VAL_ 1530 VDM_DiscoStateRL 0 "Undefined" 1 "Locked" 2 "Unlocked" 3 "Locking" 4 "Unlocking" 5 "Faulted" ;
+
 SIG_GROUP_ 1530 VDM_DisconnectState 1 : VDM_DiscoStateRL_Target VDM_DiscoStateRL VDM_CurrentSenseRL VDM_TargetSpeedRL VDM_LockCountRL VDM_DiscoStateRR_Target VDM_DiscoStateRR VDM_CurrentSenseRR VDM_TargetSpeedRR VDM_LockCountRR;
 `)
 
@@ -115,7 +125,7 @@ func TestDecodeEACVariables(t *testing.T) {
 		unit        string
 	}
 
-	canDataHexString := "004a00204e000000009821010001"
+	canDataHexString := "008232204e027600ca4b0007d296"
 
 	payload, err := can.PayloadFromHex(canDataHexString)
 	// ci := packet.Metadata().CaptureInfo
@@ -128,13 +138,13 @@ func TestDecodeEACVariables(t *testing.T) {
 	expected := []Sig{
 		{
 			name:        "TMM_EvapAirOutTTgt",
-			value:       -5.199999999999999,
+			value:       6.0,
 			description: "",
 			unit:        "degC",
 		},
 		{
 			name:        "TMM_ChillerCoolantOutTTgt",
-			value:       -20.0,
+			value:       -10.0,
 			description: "",
 			unit:        "degC",
 		},
@@ -146,31 +156,31 @@ func TestDecodeEACVariables(t *testing.T) {
 		},
 		{
 			name:        "TMM_FBTargetSuctionPressure",
-			value:       0.0,
+			value:       15.75,
 			description: "",
 			unit:        "kPa",
 		},
 		{
 			name:        "TMM_FFTargetCompressorSpeed",
-			value:       -1,
+			value:       100,
 			description: "",
 			unit:        "RPM",
 		},
 		{
 			name:        "TMM_FBTargetCompressorSpeed",
-			value:       10872,
+			value:       1000,
 			description: "",
 			unit:        "RPM",
 		},
 		{
 			name:        "TMM_CompressorSpeedActual",
-			value:       32895,
+			value:       1000,
 			description: "",
 			unit:        "RPM",
 		},
 		{
 			name:        "TMM_EACEvapAirTempIn",
-			value:       -20.0,
+			value:       10.0,
 			description: "",
 			unit:        "degC",
 		},
@@ -210,6 +220,6 @@ func TestDecodeDisconnectState(t *testing.T) {
 	for _, signal := range message.Signals {
 		valueDesc, _ := signal.UnmarshalValueDescriptionPayload(p)
 		value := signal.UnmarshalPhysicalPayload(p)
-		fmt.Println(value, valueDesc, signal.Unit)
+		fmt.Printf("name: %s, value: %f, desc: %s, unit: %s\n", signal.Name, value, valueDesc, signal.Unit)
 	}
 }
