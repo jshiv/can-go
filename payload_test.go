@@ -90,3 +90,19 @@ func Benchmark4BytesPayload_PackBigEndian(b *testing.B) {
 		_ = payload.PackBigEndian()
 	}
 }
+
+func Benchmark4BytesPayload_UnsignedBitsLittleEndian(b *testing.B) {
+	data := []byte{0x40, 0x23, 0x01, 0x12}
+	payload := Payload{Data: data}
+	for i := 0; i < b.N; i++ {
+		_ = payload.UnsignedBitsLittleEndian(0, 16)
+	}
+}
+
+func Benchmark4BytesPayload_UnsignedBitsBigEndian(b *testing.B) {
+	data := []byte{0x40, 0x23, 0x01, 0x12}
+	payload := Payload{Data: data}
+	for i := 0; i < b.N; i++ {
+		_ = payload.UnsignedBitsBigEndian(0, 16)
+	}
+}
