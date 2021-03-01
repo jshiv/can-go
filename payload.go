@@ -221,34 +221,34 @@ func (p *Payload) SignedBitsBigEndian(start, length uint16) int64 {
 // 	d.SetUnsignedBitsBigEndian(start, length, reinterpret.AsUnsigned(value, length))
 // }
 
-// // Bit returns the value of the i:th bit in the data as a bool.
-// func (d *Data) Bit(i uint8) bool {
-// 	if i > 63 {
-// 		return false
-// 	}
-// 	// calculate which byte the bit belongs to
-// 	byteIndex := i / 8
-// 	// calculate bit mask for extracting the bit
-// 	bitMask := uint8(1 << (i % 8))
-// 	// mocks the bit
-// 	bit := d[byteIndex]&bitMask > 0
-// 	// done
-// 	return bit
-// }
+// Bit returns the value of the i:th bit in the data as a bool.
+func (p *Payload) Bit(i uint16) bool {
+	if i > 8*p.Length-1 {
+		return false
+	}
+	// calculate which byte the bit belongs to
+	byteIndex := i / 8
+	// calculate bit mask for extracting the bit
+	bitMask := uint8(1 << (i % 8))
+	// mocks the bit
+	bit := p.Data[byteIndex]&bitMask > 0
+	// done
+	return bit
+}
 
-// // SetBit sets the value of the i:th bit in the data.
-// func (d *Data) SetBit(i uint8, value bool) {
-// 	if i > 63 {
-// 		return
-// 	}
-// 	byteIndex := i / 8
-// 	bitIndex := i % 8
-// 	if value {
-// 		d[byteIndex] |= uint8(1 << bitIndex)
-// 	} else {
-// 		d[byteIndex] &= ^uint8(1 << bitIndex)
-// 	}
-// }
+// SetBit sets the value of the i:th bit in the data.
+func (p *Payload) SetBit(i uint16, value bool) {
+	if i > 8*p.Length-1 {
+		return
+	}
+	byteIndex := i / 8
+	bitIndex := i % 8
+	if value {
+		p.Data[byteIndex] |= uint8(1 << bitIndex)
+	} else {
+		p.Data[byteIndex] &= ^uint8(1 << bitIndex)
+	}
+}
 
 // PackLittleEndian packs the data into a contiguous uint64 value for little-endian signals.
 // func (d *Data) PackLittleEndian() uint64 {
