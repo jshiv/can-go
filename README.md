@@ -28,7 +28,7 @@ Decoding CAN messages from byte arrays can be done using `can.Payload`
 func main() {
     // Create payload from hex string
     byteStringHex := "8000000420061880000005200600"
-	p, _ := can.PayloadFromHex(byteStringHex)
+    p, _ := can.PayloadFromHex(byteStringHex)
 
     // Load example dbc file
     dbcFile := "./testdata/dbc/example/example.dbc"
