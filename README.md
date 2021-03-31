@@ -46,16 +46,16 @@ func main() {
 ```
 
 ```
-Signal: VDM_TargetSpeedRL, Value: 0.000000, Description: 
-Signal: VDM_DiscoStateRL_Target, Value: 0.000000, Description: 
-Signal: VDM_CurrentSenseRL, Value: 4.000000, Description: 
-Signal: VDM_LockCountRL, Value: 1560.000000, Description: 
-Signal: VDM_DiscoStateRL, Value: 2.000000, Description: Unlocked
-Signal: VDM_TargetSpeedRR, Value: 0.000000, Description: 
-Signal: VDM_DiscoStateRR_Target, Value: 0.000000, Description: 
-Signal: VDM_CurrentSenseRR, Value: 5.000000, Description: 
-Signal: VDM_LockCountRR, Value: 1536.000000, Description: 
-Signal: VDM_DiscoStateRR, Value: 2.000000, Description: Unlocked
+Signal: TargetSpeedRearLeft, Value: 0.000000, Description: 
+Signal: DisconnectStateRearLeftTarget, Value: 0.000000, Description: 
+Signal: CurrentRearLeft, Value: 4.000000, Description: 
+Signal: LockCountRearLeft, Value: 1560.000000, Description: 
+Signal: DisconnectStateRearLeft, Value: 2.000000, Description: Unlocked
+Signal: TargetSpeedRearRight, Value: 0.000000, Description: 
+Signal: DisconnectStateRearRightTarget, Value: 0.000000, Description: 
+Signal: CurrentRearRight, Value: 5.000000, Description: 
+Signal: LockCountRearRight, Value: 1536.000000, Description: 
+Signal: DisconnectStateRearRight, Value: 2.000000, Description: Unlocked
 ```
 
 
