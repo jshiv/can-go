@@ -27,21 +27,21 @@ Decoding CAN messages from byte arrays can be done using `can.Payload`
 ```go
 func main() {
     // Create payload from hex string
-	byteStringHex := "8000000420061880000005200600"
+    byteStringHex := "8000000420061880000005200600"
 	p, _ := can.PayloadFromHex(byteStringHex)
 
     // Load example dbc file
-	dbcFile := "./testdata/dbc/example/example.dbc"
-	input, _ := ioutil.ReadFile(dbcFile)
-	c, _ := generate.Compile(dbcFile, input)
-	db := *c.Database
+    dbcFile := "./testdata/dbc/example/example.dbc"
+    input, _ := ioutil.ReadFile(dbcFile)
+    c, _ := generate.Compile(dbcFile, input)
+    db := *c.Database
 
     // Decode message frame ID 1530
-	message, _ := db.Message(uint32(1530))
-	decodedSignals := message.Decode(&p)
-	for _, signal := range decodedSignals {
-		fmt.Printf("Signal: %s, Value: %f, Description: %s\n", signal.Signal.Name, signal.Value, signal.Description)
-	}
+    message, _ := db.Message(uint32(1530))
+    decodedSignals := message.Decode(&p)
+    for _, signal := range decodedSignals {
+        fmt.Printf("Signal: %s, Value: %f, Description: %s\n", signal.Signal.Name, signal.Value, signal.Description)
+    }
 }
 ```
 
