@@ -31,7 +31,7 @@ func main() {
     p, _ := can.PayloadFromHex(byteStringHex)
 
     // Load example dbc file
-    dbcFile := "./testdata/dbc/example/example.dbc"
+    dbcFile := "./testdata/dbc/example/example_payload.dbc"
     input, _ := ioutil.ReadFile(dbcFile)
     c, _ := generate.Compile(dbcFile, input)
     db := *c.Database
